@@ -1,13 +1,11 @@
-import "source-map-support/register";
-
 import { commands, window, workspace, type ExtensionContext } from "vscode";
 import { getApplicationId } from "./helpers/getApplicationId";
+import { StatusBarMode, editor } from "./editor";
 import { RPCController } from "./controller";
 import { CONFIG_KEYS } from "./constants";
 import { getConfig } from "./config";
 import { logInfo } from "./logger";
 import { dataClass } from "./data";
-import { editor } from "./editor";
 
 const controller = new RPCController(
     getApplicationId(getConfig()).clientId,
@@ -28,6 +26,8 @@ export const registerListeners = (ctx: ExtensionContext) => {
             await controller.login();
             if (isEnabled) await controller.enable();
         }
+
+        controller.manualIdleMode = config.get(CONFIG_KEYS.Status.Idle.Check) === false;
     });
 
     ctx.subscriptions.push(onConfigurationChanged);
@@ -54,7 +54,7 @@ export const registerCommands = (ctx: ExtensionContext) => {
         await controller.disable();
 
         logInfo("[003] Destroyed Discord RPC client");
-        editor.statusBarItem.hide();
+        editor.setStatusBarItem(StatusBarMode.Disabled);
     };
 
     const togglePrivacyMode = async (activate: boolean) => {
@@ -106,8 +106,7 @@ export const registerCommands = (ctx: ExtensionContext) => {
     const reconnectCommand = commands.registerCommand("vscord.reconnect", async () => {
         logInfo("Reconnecting to Discord Gateway...");
 
-        editor.statusBarItem.text = "$(search-refresh) Connecting to Discord Gateway...";
-        editor.statusBarItem.tooltip = "Connecting to Discord Gateway...";
+        editor.setStatusBarItem(StatusBarMode.Pending);
 
         await controller
             .login()
@@ -115,11 +114,7 @@ export const registerCommands = (ctx: ExtensionContext) => {
             .catch(() => {
                 if (!config.get(CONFIG_KEYS.Behaviour.SuppressNotifications))
                     window.showErrorMessage("Failed to reconnect to Discord Gateway");
-
-                editor.statusBarItem.text = "$(search-refresh) Reconnect to Discord Gateway";
-                editor.statusBarItem.command = "vscord.reconnect";
-                editor.statusBarItem.tooltip = "Reconnect to Discord Gateway";
-                editor.statusBarItem.show();
+                editor.setStatusBarItem(StatusBarMode.Disconnected);
             });
     });
 
@@ -128,10 +123,7 @@ export const registerCommands = (ctx: ExtensionContext) => {
 
         await controller.destroy();
 
-        editor.statusBarItem.text = "$(search-refresh) Reconnect to Discord Gateway";
-        editor.statusBarItem.command = "vscord.reconnect";
-        editor.statusBarItem.tooltip = "Reconnect to Discord Gateway";
-        editor.statusBarItem.show();
+        editor.setStatusBarItem(StatusBarMode.Disconnected);
     });
 
     const enablePrivacyModeCommand = commands.registerCommand("vscord.enablePrivacyMode", async () => {
@@ -152,6 +144,26 @@ export const registerCommands = (ctx: ExtensionContext) => {
             await window.showInformationMessage("Disabled Privacy Mode.");
     });
 
+    const startIdlingCommand = commands.registerCommand("vscord.startIdling", async () => {
+        logInfo("Started Idling");
+
+        controller.manualIdling = true;
+        await controller.sendActivity(false, true);
+
+        if (!config.get(CONFIG_KEYS.Behaviour.SuppressNotifications))
+            await window.showInformationMessage("Started Idling.");
+    });
+
+    const stopIdlingCommand = commands.registerCommand("vscord.stopIdling", async () => {
+        logInfo("Stopped Idling");
+
+        controller.manualIdling = false;
+        await controller.sendActivity();
+
+        if (!config.get(CONFIG_KEYS.Behaviour.SuppressNotifications))
+            await window.showInformationMessage("Stopped Idling.");
+    });
+
     ctx.subscriptions.push(
         enableCommand,
         disableCommand,
@@ -160,7 +172,9 @@ export const registerCommands = (ctx: ExtensionContext) => {
         reconnectCommand,
         disconnectCommand,
         enablePrivacyModeCommand,
-        disablePrivacyModeCommand
+        disablePrivacyModeCommand,
+        startIdlingCommand,
+        stopIdlingCommand
     );
 
     logInfo("Registered Discord Rich Presence commands");

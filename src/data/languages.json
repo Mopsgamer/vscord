@@ -5,6 +5,10 @@
             "image": "text"
         },
         {
+            "language": "agda",
+            "image": "agda"
+        },
+        {
             "language": "ansible",
             "image": "ansible"
         },
@@ -75,6 +79,10 @@
         {
             "language": "fortran",
             "image": "fortran"
+        },
+        {
+            "language": "fountain",
+            "image": "fountain"
         },
         {
             "language": "fsharp",
@@ -195,6 +203,10 @@
         {
             "language": "latex",
             "image": "text"
+        },
+        {
+            "language": "lean",
+            "image": "lean"
         },
         {
             "language": "less",
@@ -393,6 +405,10 @@
             "image": "tex"
         },
         {
+            "language": "typst",
+            "image": "typst"
+        },
+        {
             "language": "umjunsik",
             "image": "umm"
         },
@@ -403,6 +419,10 @@
         {
             "language": "verse",
             "image": "verse"
+        },
+        {
+            "language": "vhdl",
+            "image": "vhdl"
         },
         {
             "language": "vue",
@@ -490,6 +510,12 @@
         },
         ".adoc": {
             "image": "asciidoc"
+        },
+        ".agda": {
+            "image": "agda"
+        },
+        ".lagda": {
+            "image": "agda"
         },
         ".asciidoc": {
             "image": "asciidoc"
@@ -695,6 +721,9 @@
         "/contenthook\\.config\\.(ts|cjs|mjs|js)$/i": {
             "image": "contenthook"
         },
+        "/contentkit\\.config\\.(ts|cjs|mjs|js)$/i": {
+            "image": "contentkit"
+        },
         ".coffee.erb": {
             "image": "coffee"
         },
@@ -850,6 +879,12 @@
         },
         ".flowconfig": {
             "image": "flowconfig"
+        },
+        ".fountain": {
+            "image": "fountain"
+        },
+        ".spmd": {
+            "image": "fountain"
         },
         ".fs": {
             "image": "fsharp"
@@ -1031,6 +1066,12 @@
         "/\\.kt[ms]?$/i": {
             "image": "kotlin"
         },
+        ".lean": {
+            "image": "lean"
+        },
+        ".lean4markdown": {
+            "image": "lean"
+        },
         ".less": {
             "image": "less"
         },
@@ -1144,6 +1185,9 @@
         },
         ".ttl": {
             "image": "manifest"
+        },
+        ".typ": {
+            "image": "typst"
         },
         ".rviz": {
             "image": "manifest"
@@ -1619,6 +1663,12 @@
         ".vue": {
             "image": "vue"
         },
+        ".vhd": {
+            "image": "vhdl"
+        },
+        ".vhdl": {
+            "image": "vhdl"
+        },
         ".zu": {
             "image": "zura"
         },
@@ -1648,6 +1698,9 @@
         },
         ".yarnrc": {
             "image": "yarn"
+        },
+        "/yumma\\.config\\.(cjs|js|mjs|ts)/i": {
+            "image": "yummacss"
         },
         ".zig": {
             "image": "zig"

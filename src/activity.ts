@@ -1,4 +1,4 @@
-import { resolveLangName, toLower, toTitle, toUpper } from "./helpers/resolveLangName";
+import { resolveLangName, toLower, toTitle, toUpper, getArticle } from "./helpers/resolveLangName";
 import { type GatewayActivityButton } from "discord-api-types/v10";
 import { type SetActivity } from "@xhayper/discord-rpc";
 import { CONFIG_KEYS, FAKE_EMPTY } from "./constants";
@@ -19,7 +19,6 @@ import {
     type Selection,
     type TextDocument
 } from "vscode";
-import { editor } from "./editor";
 
 export enum CURRENT_STATUS {
     IDLE = "idle",
@@ -102,7 +101,7 @@ export const activity = async (
     if (config.get(CONFIG_KEYS.Status.ShowElapsedTime)) {
         presence.startTimestamp = config.get(CONFIG_KEYS.Status.ResetElapsedTimePerFile)
             ? Date.now()
-            : previous.startTimestamp ?? Date.now();
+            : (previous.startTimestamp ?? Date.now());
     } else {
         delete presence.startTimestamp;
     }
@@ -192,7 +191,7 @@ export const activity = async (
                 : undefined) ?? workspaceExcludedText;
     } else {
         const text = await replaceAllText(ignoreWorkspacesText);
-        workspaceExcludedText = text !== "" ? text : undefined ?? workspaceExcludedText;
+        workspaceExcludedText = text !== "" ? text : workspaceExcludedText;
     }
 
     let details = isWorkspaceExcluded ? workspaceExcludedText : undefined;
@@ -351,13 +350,13 @@ export const getPresenceButtons = async (
     let state: "Idle" | "Active" | "Inactive" | undefined = isIdling
         ? "Idle"
         : isGitExcluded
-        ? undefined
-        : status == CURRENT_STATUS.EDITING ||
-          status == CURRENT_STATUS.VIEWING ||
-          status == CURRENT_STATUS.NOT_IN_FILE ||
-          status == CURRENT_STATUS.DEBUGGING
-        ? "Active"
-        : "Inactive";
+          ? undefined
+          : status == CURRENT_STATUS.EDITING ||
+              status == CURRENT_STATUS.VIEWING ||
+              status == CURRENT_STATUS.NOT_IN_FILE ||
+              status == CURRENT_STATUS.DEBUGGING
+            ? "Active"
+            : "Inactive";
     if ((!button1Enabled && !button2Enabled) || !state) return [];
     let isGit = !isGitExcluded && dataClass.gitRemoteUrl;
     let button1 = buttonValidation(await createButton(replaceAllText, state, isGit, "Button1"), "Button1");
@@ -376,9 +375,18 @@ export const replaceAppInfo = (text: string): string => {
 
     const isInsider = appName.includes("Insiders");
     const isCodium = appName.startsWith("VSCodium") || appName.startsWith("codium");
+    const isCursor = appName.startsWith("Cursor");
 
     const insiderAppName = isCodium ? "vscodium-insiders" : "vscode-insiders";
-    const normalAppName = isCodium ? "vscodium" : "vscode";
+    let normalAppName;
+
+    if (isCursor) {
+        normalAppName = "cursor";
+    } else if (isCodium) {
+        normalAppName = "vscodium";
+    } else {
+        normalAppName = "vscode";
+    }
 
     const replaceMap = new Map([
         ["{app_name}", appName],
@@ -422,14 +430,18 @@ export const replaceGitInfo = (text: string, excluded = false): string => {
 
     const replaceMap = new Map([
         ["{git_owner}", (!excluded ? dataClass.gitRemoteUrl?.owner : undefined) ?? FAKE_EMPTY],
-        ["{git_provider}", (!excluded ? dataClass.gitRemoteUrl?.source : undefined) ?? FAKE_EMPTY],
-        ["{git_repo}", (!excluded ? dataClass.gitRemoteUrl?.name ?? dataClass.gitRepoName : undefined) ?? FAKE_EMPTY],
+        ["{git_repo}", (!excluded ? (dataClass.gitRemoteUrl?.name ?? dataClass.gitRepoName) : undefined) ?? FAKE_EMPTY],
         ["{git_branch}", (!excluded ? dataClass.gitBranchName : undefined) ?? FAKE_EMPTY],
-        [
-            "{git_url}",
-            (!excluded ? (dataClass.gitRemoteUrl?.toString("https") ?? "").replace(/\.git$/, "") : undefined) ??
-                FAKE_EMPTY
-        ]
+
+        //  http, https, ssh, git
+        ["{git_protocol}", (!excluded ? dataClass.gitRemoteUrl?.protocol : undefined) ?? FAKE_EMPTY],
+        // github.com, gitlab.com, bitbucket.org, etc. (excluding port)
+        ["{git_resource}", (!excluded ? dataClass.gitRemoteUrl?.resource : undefined) ?? FAKE_EMPTY],
+        // github.com, gitlab.com, bitbucket.org, etc. (include port)
+        ["{git_host}", (!excluded ? dataClass.gitRemoteUrl?.source : undefined) ?? FAKE_EMPTY],
+        ["{git_port}", (!excluded ? dataClass.gitRemoteUrl?.port?.toString() : undefined) ?? FAKE_EMPTY],
+        ["{git_href}", (!excluded ? dataClass.gitRemoteUrl?.href : undefined) ?? FAKE_EMPTY],
+        ["{git_url}", (!excluded ? dataClass.gitRemoteUrl?.toString("https") : undefined) ?? FAKE_EMPTY]
     ]);
 
     for (const [key, value] of replaceMap) text = text.replaceAll(key, value);
@@ -492,6 +504,9 @@ export const replaceFileInfo = async (
         ["{lang}", toLower(fileIcon)],
         ["{Lang}", toTitle(fileIcon)],
         ["{LANG}", toUpper(fileIcon)],
+        ["{a_lang}", `${getArticle(toLower(fileIcon))} ${toLower(fileIcon)}`],
+        ["{a_Lang}", `${getArticle(toTitle(fileIcon))} ${toTitle(fileIcon)}`],
+        ["{a_LANG}", `${getArticle(toUpper(fileIcon))} ${toUpper(fileIcon)}`],
         [
             "{problems_count}",
             config.get(CONFIG_KEYS.Status.Problems.Enabled)

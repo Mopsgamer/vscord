@@ -6,7 +6,7 @@ export type FileSizeStandard = "iec" | "jedec";
 
 export interface ExtensionConfigurationType {
     "app.id": string;
-    "app.name": "Code" | "Visual Studio Code" | "VSCodium" | "Custom";
+    "app.name": "Code" | "Visual Studio Code" | "VSCodium" | "Cursor" | "Custom";
     "app.privacyMode.enable": boolean;
     "app.whitelistEnabled": boolean;
     "app.whitelistIsBlacklist": boolean;
@@ -109,6 +109,7 @@ export interface ExtensionConfigurationType {
     "file.size.spacer": string;
     "behaviour.additionalFileMapping": Record<string, string>;
     "behaviour.suppressNotifications": boolean;
+    "behaviour.suppressRpcCouldNotConnect": boolean;
     "behaviour.prioritizeLanguagesOverExtensions": boolean;
     "behaviour.statusBarAlignment": "Left" | "Right";
     "behaviour.debug": boolean;

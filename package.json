@@ -1,7 +1,7 @@
 {
     "name": "vscord",
     "displayName": "Discord Rich Presence",
-    "version": "5.2.13",
+    "version": "5.3.7",
     "description": "Highly customizable Discord Rich Presence extension for Visual Studio Code",
     "main": "dist/extension.js",
     "repository": "github:ZStrikeGit/vscord",
@@ -47,20 +47,18 @@
         "lint:fix": "pnpm prettier . --write"
     },
     "devDependencies": {
-        "@types/git-url-parse": "^9.0.3",
-        "@types/node": "~16.18.95",
-        "@types/vscode": "1.57.0",
-        "@vscode/vsce": "^2.24.0",
-        "@xhayper/discord-rpc": "^1.1.2",
-        "discord-api-types": "^0.37.79",
-        "filesize": "^10.1.1",
-        "git-url-parse": "^14.0.0",
-        "source-map-support": "^0.5.21",
-        "tsup": "^8.0.2",
-        "typescript": "^5.4.4"
+        "@types/node": "~22.15.21",
+        "@types/vscode": "^1.78.0",
+        "@vscode/vsce": "^3.6.2",
+        "@xhayper/discord-rpc": "^1.3.0",
+        "discord-api-types": "^0.38.29",
+        "filesize": "^11.0.13",
+        "git-url-parse": "^16.1.0",
+        "tsup": "^8.5.0",
+        "typescript": "^5.9.3"
     },
     "engines": {
-        "vscode": "^1.57.0"
+        "vscode": "^1.78.0"
     },
     "contributes": {
         "commands": [
@@ -103,6 +101,16 @@
                 "command": "vscord.disablePrivacyMode",
                 "title": "Disable Privacy Mode",
                 "category": "VSCord"
+            },
+            {
+                "command": "vscord.startIdling",
+                "title": "Start Idle",
+                "category": "VSCord"
+            },
+            {
+                "command": "vscord.stopIdling",
+                "title": "Stop Idle",
+                "category": "VSCord"
             }
         ],
         "configuration": [
@@ -115,6 +123,7 @@
                             "Code",
                             "Visual Studio Code",
                             "VSCodium",
+                            "Cursor",
                             "Custom"
                         ],
                         "default": "Code",
@@ -692,6 +701,11 @@
                         "default": false,
                         "description": "Suppresses all notifications from the extension."
                     },
+                    "vscord.behaviour.suppressRpcCouldNotConnect": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Suppresses \"RPC_COULD_NOT_CONNECT\" notification."
+                    },
                     "vscord.behaviour.prioritizeLanguagesOverExtensions": {
                         "type": "boolean",
                         "default": false,
@@ -1031,8 +1045,5 @@
             "description": "Cannot access local Discord RPC when running in virtual workspace"
         }
     },
-    "packageManager": "pnpm@8.15.4",
-    "dependencies": {
-        "vscord": "file:"
-    }
+    "packageManager": "pnpm@10.18.2"
 }
