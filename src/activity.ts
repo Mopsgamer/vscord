@@ -5,7 +5,6 @@ import { CONFIG_KEYS, FAKE_EMPTY } from "./constants";
 import { getFileSize } from "./helpers/getFileSize";
 import { isExcluded } from "./helpers/isExcluded";
 import { isObject } from "./helpers/isObject";
-import gitUrlParse from "git-url-parse";
 import { getConfig } from "./config";
 import { dataClass } from "./data";
 import { sep } from "node:path";
@@ -19,6 +18,7 @@ import {
     type Selection,
     type TextDocument
 } from "vscode";
+import { logInfo } from "./logger";
 
 export enum CURRENT_STATUS {
     IDLE = "idle",
@@ -297,13 +297,17 @@ export const activity = async (
 async function createButton(
     replaceAllText: (text: string) => Promise<string>,
     state: "Idle" | "Active" | "Inactive",
-    isGit: false | gitUrlParse.GitUrl | undefined,
+    isGit: boolean,
     currentButton: "Button1" | "Button2"
 ): Promise<GatewayActivityButton | undefined> {
     const config = getConfig();
-    let currentState = CONFIG_KEYS.Status.Buttons[currentButton];
-    if (!config.get(isGit && state != "Inactive" ? currentState.Git[state].Enabled : currentState[state].Enabled))
+    const currentState = CONFIG_KEYS.Status.Buttons[currentButton];
+    const configKeyEnabled = isGit && state != "Inactive" ? currentState.Git[state].Enabled : currentState[state].Enabled
+    const enabled = config.get(configKeyEnabled)
+    logInfo("[activity.ts] createButton(): enabled", enabled)
+    if (!enabled) {
         return undefined;
+    }
 
     return {
         label: await replaceAllText(
@@ -358,9 +362,12 @@ export const getPresenceButtons = async (
             ? "Active"
             : "Inactive";
     if ((!button1Enabled && !button2Enabled) || !state) return [];
-    let isGit = !isGitExcluded && dataClass.gitRemoteUrl;
+    let isGit = !isGitExcluded && Boolean(dataClass.gitRemoteUrl);
+    logInfo("[activity.ts] repo button1#gitRemoteUrl:", dataClass.gitRemoteUrl, "isGit", isGit);
     let button1 = buttonValidation(await createButton(replaceAllText, state, isGit, "Button1"), "Button1");
     let button2 = buttonValidation(await createButton(replaceAllText, state, isGit, "Button2"), "Button2");
+    logInfo("[activity.ts] getPresenceButtons button1:", state, button1)
+    logInfo("[activity.ts] getPresenceButtons button2:", state, button2)
     if (
         (button1.validationError || button2.validationError) &&
         !config.get(CONFIG_KEYS.Behaviour.SuppressNotifications)

@@ -83,9 +83,14 @@ export class RPCController {
             void this.sendActivity(isViewing, isIdling);
         };
 
-        const fileSwitch = window.onDidChangeActiveTextEditor(() => sendActivity(true));
+        const fileSwitch = window.onDidChangeActiveTextEditor(() => {
+            logInfo("onDidChangeActiveTextEditor()");
+            sendActivity(true)
+        });
         const fileEdit = workspace.onDidChangeTextDocument((e) => {
             if (e.document !== dataClass.editor?.document) return;
+            logInfo("onDidChangeTextDocument()");
+            dataClass.updateGitInfo();
             void this.activityThrottle.callable();
         });
         const fileSelectionChanged = window.onDidChangeTextEditorSelection((e) => {
@@ -95,8 +100,10 @@ export class RPCController {
         const debugStart = debug.onDidStartDebugSession(() => sendActivity());
         const debugEnd = debug.onDidTerminateDebugSession(() => sendActivity());
         const diagnosticsChange = languages.onDidChangeDiagnostics(() => onDiagnosticsChange());
-        const changeWindowState = window.onDidChangeWindowState((e: WindowState) => this.checkIdle(e));
-        const gitListener = dataClass.onUpdate(() => this.activityThrottle.callable());
+       const changeWindowState = window.onDidChangeWindowState((e: WindowState) => {
+            logInfo("onDidChangeWindowState()");
+            this.checkIdle(e)
+        });
 
         // fire checkIdle at least once after loading
         this.checkIdle(window.state);
@@ -104,7 +111,7 @@ export class RPCController {
         if (config.get(CONFIG_KEYS.Status.Problems.Enabled)) this.listeners.push(diagnosticsChange);
         if (config.get(CONFIG_KEYS.Status.Idle.Check)) this.listeners.push(changeWindowState);
 
-        this.listeners.push(fileSwitch, fileEdit, fileSelectionChanged, debugStart, debugEnd, gitListener);
+        this.listeners.push(fileSwitch, fileEdit, fileSelectionChanged, debugStart, debugEnd);
     }
 
     private checkCanSend(isIdling: boolean): boolean {

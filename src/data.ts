@@ -17,35 +17,34 @@ import {
 } from "vscode";
 
 const ALLOWED_SCHEME = ["file", "vscode-remote", "untitled", "vsls"];
-
-interface DisposableLike {
-    dispose: () => unknown;
-}
-
 const API_VERSION: Parameters<GitExtension["getAPI"]>["0"] = 1;
 
-export class Data implements DisposableLike {
+function extractRepo(repos: Repository[], comparePath: string): Repository | undefined {
+    const filterBySub = repos.filter((v) => {
+        const subCompare = comparePath.substring(0, v.rootUri.fsPath.length)
+        logInfo(`[data.ts] extractRepo(): "${v.rootUri.fsPath}" less than "${comparePath}" and equal to "${subCompare}"`)
+        const byLen = v.rootUri.fsPath.length <= comparePath.length
+        const byEq = v.rootUri.fsPath === subCompare
+        return byLen && byEq
+    })
+    const sortedByLen = filterBySub.sort((a, b) => b.rootUri.fsPath.length - a.rootUri.fsPath.length)
+    const repo = sortedByLen.shift()
+    return repo;
+}
+
+export class Data implements Disposable {
+    protected _gitApi: GitApi | undefined;
     protected _repo: Repository | undefined;
     protected _remote: Remote | undefined;
 
-    protected _debug: boolean;
-
-    private eventEmitter = new EventEmitter<void>();
-
-    private rootListeners: (Disposable | undefined)[] = [];
-    private gitExtListeners: (Disposable | undefined)[] = [];
-    private gitApiListeners: (Disposable | undefined)[] = [];
-
-    private gitExt: Extension<GitExtension> | undefined;
-    private gitApi: GitApi | undefined;
+    private rootListeners: (Disposable)[] = [];
+    private gitApiListeners: (Disposable)[] = [];
 
     public editor: TextEditor | undefined;
 
-    public constructor(debug = false) {
-        this._debug = debug;
+    public constructor() {
         this.editor = window.activeTextEditor;
-        this.ext();
-        this.api(false);
+        this.requireGitApi().then(api => {this._gitApi = api; this.updateGitInfo()})
         this.rootListeners.push(
             // TODO: there's a small delay when switching file, it will fire a event where e will be null, then after a few ms, it will fire again with non-null e, figure out how to work around that
             window.onDidChangeActiveTextEditor((e) => {
@@ -59,10 +58,6 @@ export class Data implements DisposableLike {
                 if (e) this.debug(`root(): window.onDidChangeActiveTextEditor: got URI '${e.document.uri.scheme}'`);
 
                 this.editor = e;
-            }),
-            extensions.onDidChange(() => {
-                this.debug("root(): extensions.onDidChange");
-                this.ext();
             })
         );
     }
@@ -161,6 +156,7 @@ export class Data implements DisposableLike {
     }
 
     public get gitRemoteUrl(): gitUrlParse.GitUrl | undefined {
+        this.debug(`gitRemoteUrl(): Remote: ${this._remote}`);
         const v = stripCredential(this._remote?.fetchUrl ?? this._remote?.pushUrl ?? "");
         this.debug(`gitRemoteUrl(): Url: ${v ?? ""}`);
         if (!v) return;
@@ -176,132 +172,60 @@ export class Data implements DisposableLike {
         return v;
     }
 
-    public dispose(level = 0): void {
-        let disposeOf: (Disposable | undefined)[] = [];
-        switch (level) {
-            case 0:
-                this.dispose(1);
-                disposeOf = this.rootListeners;
-                this.rootListeners = [];
-                break;
-            case 1:
-                this.dispose(2);
-                disposeOf = this.gitExtListeners;
-                this.gitExtListeners = [];
-                break;
-            case 2:
-                disposeOf = this.gitApiListeners;
-                this.gitApiListeners = [];
-                break;
-        }
-        for (const disposable of disposeOf) disposable?.dispose();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public onUpdate(listener: () => any): Disposable {
-        return this.eventEmitter.event(listener);
-    }
-
-    private ext() {
-        // Our extension
-        this._debug = getConfig().get(CONFIG_KEYS.Behaviour.Debug) ?? false;
-
-        // Git extension
-        try {
-            const ext = extensions.getExtension<GitExtension>("vscode.git");
-            this.debug(`ext(): ${ext ? "Extension" : "undefined"}`);
-
-            if (ext && !this.gitExt) {
-                this.debug("ext(): Changed to Extension");
-                this.gitExt = ext;
-
-                if (ext.isActive) {
-                    this.debug("[data.ts] ext(): Git extension is active");
-                    this.api(ext.exports.enabled);
-                    this.gitExtListeners.push(ext.exports.onDidChangeEnablement((e) => this.api(e)));
-                } else {
-                    this.debug("[data.ts] ext(): activate");
-                    void ext.activate().then(() => {
-                        if (!ext.isActive) return;
-                        this.debug("[data.ts] ext(): Git extension activated");
-                        this.api(ext.exports.enabled);
-                        this.gitExtListeners.push(ext.exports.onDidChangeEnablement((e) => this.api(e)));
-                    });
-                }
-            } else if (!ext && this.gitExt) {
-                this.debug("[data.ts] ext(): Changed to undefined");
-                this.gitExt = undefined;
-                this.api(false);
-                this.dispose(1);
-            }
-        } catch (e) {
-            this.debug(`ext(): Git extension not found: ${e}`);
-        }
-    }
-
-    private api(e: boolean) {
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        this.debug(`api(): ${e}`);
-
-        if (e) {
-            this.gitApi = this.gitExt?.exports.getAPI(API_VERSION);
-            this.debug(`api(): ${this.gitApi ? "gitApi" : "undefined"}`);
-            this.listeners();
-        } else {
-            this.gitApi = undefined;
-            this.dispose(2);
-        }
-
-        this.updateGit();
-    }
-
-    private listeners() {
-        if (!this.gitApi) return;
-
-        this.gitApiListeners.push(
-            this.gitApi.onDidOpenRepository((e) => {
-                this.debug(`listeners(): Open Repo ${e.rootUri.fsPath.split(sep).pop() ?? ""}`);
-                this.updateGit();
-            }),
-            this.gitApi.onDidCloseRepository((e) => {
-                this.debug(`listeners(): Open Close ${e.rootUri.fsPath.split(sep).pop() ?? ""}`);
-                this.updateGit();
-            }),
-            this.gitApi.onDidChangeState((e) => {
-                this.debug("listeners(): Change State", e);
-
-                this.updateGit();
-            })
-        );
-    }
-
-    private updateGit() {
-        this.debug("updateGit()");
-        if (!this.gitApi) {
-            this._repo = undefined;
-            this._remote = undefined;
-            this.eventEmitter.fire();
+    private async requireGit(): Promise<Extension<GitExtension> | undefined> {
+        const ext = extensions.getExtension<GitExtension>("vscode.git");
+        if (!ext) {
             return;
         }
-        this._repo = this.repo();
-        this._remote = this.remote();
-        this.debug(`updateGit(): repo ${this.gitRepoPath ?? ""}`);
-        this.eventEmitter.fire();
+        await ext.activate();
+        return ext;
     }
 
-    private repo(): Repository | undefined {
-        if (!this.gitApi) return;
+    private async requireGitApi(): Promise<GitApi | undefined> {
+        const ext = await this.requireGit()
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        this.debug(`requireGitApi(): ${ext}`);
 
-        const repos = this.gitApi.repositories;
+        if (!ext) {
+            return;
+        }
+        const api = ext.exports.getAPI(API_VERSION);
+        this.debug(`requireGitApi(): ${api ? "got api" : "no api from ext. ext exists."}`);
+        this.gitApiListeners.push(
+            api.onDidOpenRepository((e) => {
+                this.debug(`listeners(): Open Repo ${e.rootUri.fsPath.split(sep).pop() ?? ""}`);
+                this.updateGitInfo();
+            }),
+            api.onDidCloseRepository((e) => {
+                this.debug(`listeners(): Open Close ${e.rootUri.fsPath.split(sep).pop() ?? ""}`);
+                this.updateGitInfo();
+            }),
+            api.onDidChangeState((e) => {
+                this.debug("listeners(): Change State", e);
+                this.updateGitInfo();
+            })
+        );
+        return api
+    }
 
-        if (this.editor) {
-            const _file = parse(this.editor.document.uri.fsPath);
-            const testString = _file.dir;
-            return repos
-                .filter((v) => v.rootUri.fsPath.length <= testString.length)
-                .filter((v) => v.rootUri.fsPath === testString.substring(0, v.rootUri.fsPath.length))
-                .sort((a, b) => b.rootUri.fsPath.length - a.rootUri.fsPath.length)
-                .shift();
+    public updateGitInfo() {
+        if (!this._gitApi) {
+            this._repo = undefined;
+            this._remote = undefined;
+            this.debug(`updateGitInfo(): repo undefined, no api`);
+            return;
+        }
+        this._repo = this.repo(this._gitApi);
+        this._remote = this.remote(this._repo);
+        this.debug(`updateGitInfo(): repo ${this.gitRepoPath ?? ""}`);
+    }
+
+    private repo(api: GitApi): Repository | undefined {
+        const repos = api.repositories;
+
+        if (window.activeTextEditor) {
+            const _file = parse(window.activeTextEditor.document.uri.fsPath);
+            return extractRepo(repos, _file.dir)
         }
 
         this.debug("repo(): no file open");
@@ -312,30 +236,31 @@ export class Data implements DisposableLike {
             .map((v) => [v])
             .sort((a, b) => a[0].index - b[0].index)
             .shift()
-            ?.map((workspace) =>
-                repos
-                    .filter((v) => v.rootUri.fsPath.length <= workspace.uri.fsPath.length)
-                    .filter((v) => v.rootUri.fsPath === workspace.uri.fsPath.substring(0, v.rootUri.fsPath.length))
-                    .sort((a, b) => a.rootUri.fsPath.length - b.rootUri.fsPath.length)
-                    .shift()
-            )
+            ?.map((workspace) => extractRepo(repos, workspace.uri.fsPath))
             .shift();
     }
 
-    private remote() {
-        const remotes = this._repo?.state.remotes;
+    private remote(repo?: Repository) {
+        const remotes = repo?.state.remotes;
 
         if (!remotes) return;
 
         return remotes.find((v) => v.name === "origin") ?? remotes[0];
     }
 
+    public dispose(): void {
+        for (const listener of this.gitApiListeners) listener.dispose()
+        this.gitApiListeners = []
+        for (const listener of this.rootListeners) listener.dispose()
+        this.rootListeners = []
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private debug(...message: any[]) {
-        if (!this._debug) return;
+        if (!getConfig().get(CONFIG_KEYS.Behaviour.Debug)) return;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         logInfo("[data.ts]", ...message);
     }
 }
 
-export const dataClass = new Data(getConfig().get(CONFIG_KEYS.Behaviour.Debug));
+export const dataClass = new Data();
