@@ -1,5 +1,5 @@
-import { ExtensionConfiguration, ExtensionConfigurationType, getConfig } from "./config";
-import { Disposable, StatusBarAlignment, StatusBarItem, window, commands, ConfigurationTarget } from "vscode";
+import { Disposable, ConfigurationTarget, StatusBarAlignment, StatusBarItem, window, commands } from "vscode";
+import { type ExtensionConfiguration, type ExtensionConfigurationType, getConfig } from "./config";
 import { CONFIG_KEYS } from "./constants";
 import { outputChannel } from "./logger";
 
@@ -85,17 +85,13 @@ class EditorController implements Disposable {
         old.dispose();
     }
 
-     #errorMessageFailedToConnectSelect(config: ExtensionConfiguration, key: string, selection?: string) {
+    #errorMessageFailedToConnectSelect(config: ExtensionConfiguration, key: string, selection?: string) {
         if (selection === "Reconnect") {
             commands.executeCommand("vscord.reconnect");
         } else if (selection === "Show output") {
-            outputChannel.show(true)
+            outputChannel.show(true);
         } else if (selection === "Don't show again") {
-            config.update(
-                key,
-                true,
-                ConfigurationTarget.Global
-            );
+            config.update(key, true, ConfigurationTarget.Global);
         }
     }
     errorMessageFailedToConnect(config: ExtensionConfiguration, error?: Error) {
@@ -108,18 +104,18 @@ class EditorController implements Disposable {
             const message = "Failed to connect to Discord Gateway.";
             window
                 .showErrorMessage(message, ...buttons)
-                .then(selection => this.#errorMessageFailedToConnectSelect(config, "", selection));
+                .then((selection) => this.#errorMessageFailedToConnectSelect(config, "", selection));
             return;
         }
 
         const configKeyPairs = {
-            "RPC_COULD_NOT_CONNECT": CONFIG_KEYS.Behaviour.SuppressRpcCouldNotConnect,
-        } as const
+            RPC_COULD_NOT_CONNECT: CONFIG_KEYS.Behaviour.SuppressRpcCouldNotConnect
+        } as const;
 
-        const errorName = error.name
-        const suppressConfigKey: string | undefined = configKeyPairs[errorName as keyof typeof configKeyPairs]
+        const errorName = error.name;
+        const suppressConfigKey: string | undefined = configKeyPairs[errorName as keyof typeof configKeyPairs];
         if (suppressConfigKey) {
-            const suppressed = config.get(suppressConfigKey)
+            const suppressed = config.get(suppressConfigKey);
             if (suppressed) {
                 return;
             }
@@ -130,13 +126,13 @@ class EditorController implements Disposable {
         const message = `Failed to connect to Discord Gateway: ${error.name}.`;
         window
             .showErrorMessage(message, ...buttons)
-            .then(selection => this.#errorMessageFailedToConnectSelect(config, suppressConfigKey, selection));
+            .then((selection) => this.#errorMessageFailedToConnectSelect(config, suppressConfigKey, selection));
         return;
     }
 
     public dispose(): void {
-        this.statusBarItem.hide()
-        this.statusBarItem.dispose()
+        this.statusBarItem.hide();
+        this.statusBarItem.dispose();
     }
 }
 

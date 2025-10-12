@@ -79,7 +79,7 @@ export class RPCController {
 
         const fileSwitch = window.onDidChangeActiveTextEditor(() => {
             logInfo("onDidChangeActiveTextEditor()");
-            sendActivity(true)
+            sendActivity(true);
         });
         const fileEdit = workspace.onDidChangeTextDocument((e) => {
             if (e.document !== dataClass.editor?.document) return;
@@ -96,7 +96,7 @@ export class RPCController {
         const debugStart = debug.onDidStartDebugSession(() => sendActivity());
         const debugEnd = debug.onDidTerminateDebugSession(() => sendActivity());
         const diagnosticsChange = languages.onDidChangeDiagnostics(() => onDiagnosticsChange());
-       const changeWindowState = window.onDidChangeWindowState((e: WindowState) => {
+        const changeWindowState = window.onDidChangeWindowState((e: WindowState) => {
             logInfo("onDidChangeWindowState()");
             dataClass.updateGitInfo();
             this.checkIdle(e);

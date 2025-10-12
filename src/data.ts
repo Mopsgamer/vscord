@@ -10,7 +10,6 @@ import {
     type Extension,
     type TextEditor,
     type WorkspaceFolder,
-    EventEmitter,
     extensions,
     window,
     workspace
@@ -21,14 +20,16 @@ const API_VERSION: Parameters<GitExtension["getAPI"]>["0"] = 1;
 
 function extractRepo(repos: Repository[], comparePath: string): Repository | undefined {
     const filterBySub = repos.filter((v) => {
-        const subCompare = comparePath.substring(0, v.rootUri.fsPath.length)
-        logInfo(`[data.ts] extractRepo(): "${v.rootUri.fsPath}" less than "${comparePath}" and equal to "${subCompare}"`)
-        const byLen = v.rootUri.fsPath.length <= comparePath.length
-        const byEq = v.rootUri.fsPath === subCompare
-        return byLen && byEq
-    })
-    const sortedByLen = filterBySub.sort((a, b) => b.rootUri.fsPath.length - a.rootUri.fsPath.length)
-    const repo = sortedByLen.shift()
+        const subCompare = comparePath.substring(0, v.rootUri.fsPath.length);
+        logInfo(
+            `[data.ts] extractRepo(): "${v.rootUri.fsPath}" less than "${comparePath}" and equal to "${subCompare}"`
+        );
+        const byLen = v.rootUri.fsPath.length <= comparePath.length;
+        const byEq = v.rootUri.fsPath === subCompare;
+        return byLen && byEq;
+    });
+    const sortedByLen = filterBySub.sort((a, b) => b.rootUri.fsPath.length - a.rootUri.fsPath.length);
+    const repo = sortedByLen.shift();
     return repo;
 }
 
@@ -37,14 +38,17 @@ export class Data implements Disposable {
     protected _repo: Repository | undefined;
     protected _remote: Remote | undefined;
 
-    private rootListeners: (Disposable)[] = [];
-    private gitApiListeners: (Disposable)[] = [];
+    private rootListeners: Disposable[] = [];
+    private gitApiListeners: Disposable[] = [];
 
     public editor: TextEditor | undefined;
 
     public constructor() {
         this.editor = window.activeTextEditor;
-        this.requireGitApi().then(api => {this._gitApi = api; this.updateGitInfo()})
+        this.requireGitApi().then((api) => {
+            this._gitApi = api;
+            this.updateGitInfo();
+        });
         this.rootListeners.push(
             // TODO: there's a small delay when switching file, it will fire a event where e will be null, then after a few ms, it will fire again with non-null e, figure out how to work around that
             window.onDidChangeActiveTextEditor((e) => {
@@ -182,7 +186,7 @@ export class Data implements Disposable {
     }
 
     private async requireGitApi(): Promise<GitApi | undefined> {
-        const ext = await this.requireGit()
+        const ext = await this.requireGit();
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         this.debug(`requireGitApi(): ${ext}`);
 
@@ -205,7 +209,7 @@ export class Data implements Disposable {
                 this.updateGitInfo();
             })
         );
-        return api
+        return api;
     }
 
     public updateGitInfo() {
@@ -225,7 +229,7 @@ export class Data implements Disposable {
 
         if (window.activeTextEditor) {
             const _file = parse(window.activeTextEditor.document.uri.fsPath);
-            return extractRepo(repos, _file.dir)
+            return extractRepo(repos, _file.dir);
         }
 
         this.debug("repo(): no file open");
@@ -249,10 +253,10 @@ export class Data implements Disposable {
     }
 
     public dispose(): void {
-        for (const listener of this.gitApiListeners) listener.dispose()
-        this.gitApiListeners = []
-        for (const listener of this.rootListeners) listener.dispose()
-        this.rootListeners = []
+        for (const listener of this.gitApiListeners) listener.dispose();
+        this.gitApiListeners = [];
+        for (const listener of this.rootListeners) listener.dispose();
+        this.rootListeners = [];
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
