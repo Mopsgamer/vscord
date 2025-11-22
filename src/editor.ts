@@ -15,8 +15,7 @@ class EditorController implements Disposable {
 
     #getAlignmentFromConfig(config: ExtensionConfiguration) {
         const value = config.get(CONFIG_KEYS.Behaviour.StatusBarAlignment);
-        const isRight = value === "Right";
-        return isRight ? StatusBarAlignment.Right : StatusBarAlignment.Left;
+        return value ?? StatusBarAlignment.Left;
     }
 
     setStatusBarItem(mode: StatusBarMode) {
@@ -50,38 +49,36 @@ class EditorController implements Disposable {
         statusBarItem.show();
     }
 
-    toggleStatusBarAlignment(onLeft?: boolean) {
+    toggleStatusBarAlignment(align: StatusBarAlignment = StatusBarAlignment.Left): StatusBarAlignment {
         const config = getConfig();
         const cfgKey = CONFIG_KEYS.Behaviour.StatusBarAlignment;
-        const alignment = (onLeft ?? config.get(cfgKey) === "Right") ? "Left" : "Right";
 
-        config.update(cfgKey, alignment satisfies ExtensionConfigurationType[typeof cfgKey]);
-        return alignment;
+        config.update(cfgKey, align satisfies ExtensionConfigurationType[typeof cfgKey]);
+        return align;
     }
 
     updateStatusBarFromConfig() {
         const config = getConfig();
         const alignment = this.#getAlignmentFromConfig(config);
         const priority = undefined;
-        const old = editor.statusBarItem;
+        const old = this.statusBarItem;
 
-        if (editor.statusBarItem.alignment === alignment) {
+        if (this.statusBarItem.alignment === alignment) {
             return;
         }
 
         // Change unchangable: alignment/priority
-        editor.statusBarItem = window.createStatusBarItem(alignment, priority);
+        this.statusBarItem = window.createStatusBarItem(alignment, priority);
         //#region copy
-        editor.statusBarItem.accessibilityInformation = old.accessibilityInformation;
-        editor.statusBarItem.backgroundColor = old.backgroundColor;
-        editor.statusBarItem.color = old.color;
-        editor.statusBarItem.command = old.command;
-        editor.statusBarItem.name = old.name;
-        editor.statusBarItem.text = old.text;
-        editor.statusBarItem.tooltip = old.tooltip;
+        this.statusBarItem.accessibilityInformation = old.accessibilityInformation;
+        this.statusBarItem.text = old.text
+        this.statusBarItem.tooltip = old.tooltip
+        this.statusBarItem.color = old.color
+        this.statusBarItem.command = old.command
+        this.statusBarItem.accessibilityInformation = old.accessibilityInformation
         //#endregion
 
-        editor.statusBarItem.show();
+        this.statusBarItem.show();
         old.dispose();
     }
 

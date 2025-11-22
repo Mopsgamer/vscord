@@ -37,7 +37,7 @@ jobs:
 
       - name: Check types
         run: |
-          pnpm tsc --noEmit
+          pnpm run check
 
       - name: Check style
         run: |
