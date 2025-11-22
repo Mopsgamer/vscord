@@ -70,12 +70,11 @@ class EditorController implements Disposable {
         // Change unchangable: alignment/priority
         this.statusBarItem = window.createStatusBarItem(alignment, priority);
         //#region copy
+        this.statusBarItem.text = old.text;
+        this.statusBarItem.tooltip = old.tooltip;
+        this.statusBarItem.color = old.color;
+        this.statusBarItem.command = old.command;
         this.statusBarItem.accessibilityInformation = old.accessibilityInformation;
-        this.statusBarItem.text = old.text
-        this.statusBarItem.tooltip = old.tooltip
-        this.statusBarItem.color = old.color
-        this.statusBarItem.command = old.command
-        this.statusBarItem.accessibilityInformation = old.accessibilityInformation
         //#endregion
 
         this.statusBarItem.show();
