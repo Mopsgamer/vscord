@@ -1,11 +1,10 @@
-import { LanguageProvider } from "./providers/languageProvider";
-import { JupyterProvider } from "./providers/jupyterProvider";
-import { type ExtensionContext, Disposable, window } from "vscode";
+import { Disposable, type ExtensionContext } from "vscode";
+import { ProviderManager } from "./managers/providerManager";
 import { FileProvider } from "./providers/fileProvider";
 import { GitProvider } from "./providers/gitProvider";
-import { Provider } from "./providers/provider";
+import { JupyterProvider } from "./providers/jupyterProvider";
+import { LanguageProvider } from "./providers/languageProvider";
 import { Logger } from "./structures/logger";
-import { ProviderManager } from "./managers/providerManager";
 
 export class Extension extends Disposable {
   providerManager = new ProviderManager(this);
@@ -25,7 +24,7 @@ export class Extension extends Disposable {
     this.providerManager.createProvider(GitProvider);
   }
 
-  public activate(ctx: ExtensionContext) {
+  public activate(ctx: ExtensionContext): void {
     this.context = ctx;
     this.providerManager.subscribe();
     this.logger.info("VSCord is activated!");
@@ -52,12 +51,12 @@ export class Extension extends Disposable {
     }, 1000);
   }
 
-  public deactivate() {
+  public deactivate(): void {
     this.dispose();
     this.activated = false;
   }
 
-  public dispose() {
+  public dispose(): void {
     for (const subscription of this.context?.subscriptions ?? []) {
       subscription.dispose();
     }

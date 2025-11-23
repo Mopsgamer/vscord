@@ -1,6 +1,6 @@
 import { defineConfig } from "rolldown";
 
-const production = process.argv.includes("--production");
+const production: boolean = process.argv.includes("--production");
 
 export default defineConfig({
   input: "src/index.ts",

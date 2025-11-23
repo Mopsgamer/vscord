@@ -1,20 +1,20 @@
-import { Provider } from "../providers/provider";
+import type { Provider } from "../providers/provider";
 import { Base } from "../structures/base";
 
 export class ProviderManager extends Base {
   providers: Provider[] = [];
 
-  public subscribe() {
+  public subscribe(): void {
     for (const provider of this.providers) {
       provider.subscribe();
     }
   }
 
-  public createProvider(cl: typeof Provider) {
+  public createProvider(cl: typeof Provider): void {
     this.addProvider(new cl(this.extension));
   }
 
-  public addProvider(provider: Provider) {
+  public addProvider(provider: Provider): void {
     this.providers.push(provider);
     this.providers.sort((a, b) => a.priority - b.priority);
     if (this.extension.activated) provider.subscribe();

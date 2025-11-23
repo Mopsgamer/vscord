@@ -1,7 +1,17 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.3.7/schema.json",
-    "formatter": {
-        "indentWidth": 2,
-        "indentStyle": "space"
+  "$schema": "https://biomejs.dev/schemas/2.3.7/schema.json",
+  "files": {
+    "includes": ["**", "!dist"]
+  },
+  "formatter": {
+    "indentWidth": 2,
+    "indentStyle": "space"
+  },
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "useGetterReturn": "off"
+      }
     }
+  }
 }

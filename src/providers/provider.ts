@@ -1,5 +1,5 @@
+import type { Extension } from "../extension";
 import { Base } from "../structures/base";
-import { Extension } from "../extension";
 
 /**
  * Provider is the main way for VSCord to figure out what variable name corospond to what
@@ -18,7 +18,7 @@ export class Provider extends Base {
     this.registerVariables();
   }
 
-  public subscribe() {
+  public subscribe(): void {
     return;
   }
 
@@ -32,16 +32,16 @@ export class Provider extends Base {
 
   public async resolveVariable(name: string): Promise<string | undefined> {
     return this.variables.has(name)
-      ? await this.variables.get(name)!()
+      ? await this.variables.get(name)?.()
       : undefined;
   }
 
-  protected registerVariables() {}
+  protected registerVariables(): void {}
 
   protected async provide(
     name: string,
     value: () => Promise<string | undefined>,
-  ) {
+  ): Promise<void> {
     this.variables.set(name, value);
   }
 }

@@ -1,12 +1,12 @@
+import { type NotebookEditor, window } from "vscode";
 import { Provider } from "./provider";
-import { window } from "vscode";
 
 export class NotebookBasedProvider extends Provider {
-  protected get notebookEditor() {
+  protected get notebookEditor(): NotebookEditor | undefined {
     return window.activeNotebookEditor;
   }
 
   public override shouldSkip(): boolean {
-    return !!!this.notebookEditor;
+    return !this.notebookEditor;
   }
 }

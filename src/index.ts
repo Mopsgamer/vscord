@@ -1,12 +1,12 @@
+import type * as vscode from "vscode";
 import { Extension } from "./extension";
-import * as vscode from "vscode";
 
 export const extension = new Extension();
 
-export function activate(ctx: vscode.ExtensionContext) {
+export function activate(ctx: vscode.ExtensionContext): void {
   extension.activate(ctx);
 }
 
-export function deactivate() {
+export function deactivate(): void {
   extension.deactivate();
 }
