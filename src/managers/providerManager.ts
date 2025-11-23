@@ -20,11 +20,11 @@ export class ProviderManager extends Base {
     if (this.extension.activated) provider.subscribe();
   }
 
-  public resolveVariable(name: string): string | undefined {
+  public async resolveVariable(name: string): Promise<string | undefined> {
     for (const provider of this.providers) {
       if (provider.shouldSkip()) continue;
       if (!provider.hasVariable(name)) continue;
-      const value = provider.resolveVariable(name);
+      const value = await provider.resolveVariable(name);
       if (value) return value;
     }
   }

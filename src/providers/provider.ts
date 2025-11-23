@@ -7,13 +7,12 @@ import { Extension } from "../extension";
 
 export class Provider extends Base {
   public activated = false;
-  private variables = new Map<string, () => string | undefined>();
+  private variables = new Map<string, () => Promise<string | undefined>>();
 
   constructor(
     extension: Extension,
     public id = "base",
-    public priority = 0,
-    public supportLang = false
+    public priority = 0
   ) {
     super(extension);
     this.registerVariables();
@@ -31,13 +30,13 @@ export class Provider extends Base {
     return this.variables.has(name);
   }
 
-  public resolveVariable(name: string): string | undefined {
-    return this.variables.has(name) ? this.variables.get(name)!() : undefined;
+  public async resolveVariable(name: string): Promise<string | undefined> {
+    return this.variables.has(name) ? await this.variables.get(name)!() : undefined;
   }
 
   protected registerVariables() {}
 
-  protected provide(name: string, value: () => string | undefined) {
+  protected async provide(name: string, value: () => Promise<string | undefined>) {
     this.variables.set(name, value);
   }
 }

@@ -32,22 +32,22 @@ export class Extension extends Disposable {
     this.activated = true;
 
     // Temporary debug code
-    setInterval(() => {
+    setInterval(async () => {
       this.logger.debug(
         "file name ->",
-        this.providerManager.resolveVariable("file_name")
+        await this.providerManager.resolveVariable("file_name")
       );
             this.logger.debug(
         "language id ->",
-        this.providerManager.resolveVariable("language_id")
+        await this.providerManager.resolveVariable("language_id")
       );
       this.logger.debug(
         "is git ok?",
-        this.providerManager.resolveVariable("git_ok")
+        await this.providerManager.resolveVariable("git_ok")
       );
       this.logger.debug(
         "unknown value",
-        this.providerManager.resolveVariable("gserersthiuwaerhuiarwehu")
+        await this.providerManager.resolveVariable("gserersthiuwaerhuiarwehu")
       );
     }, 1000);
   }
