@@ -21,13 +21,13 @@ export interface InputBox {
   value: string;
 }
 
-export enum ForcePushMode {
+export const enum ForcePushMode {
   Force,
   ForceWithLease,
   ForceWithLeaseIfIncludes,
 }
 
-export enum RefType {
+export const enum RefType {
   Head,
   RemoteHead,
   Tag,
@@ -83,7 +83,7 @@ export interface Remote {
   readonly isReadOnly: boolean;
 }
 
-export enum Status {
+export const enum Status {
   INDEX_MODIFIED,
   INDEX_ADDED,
   INDEX_DELETED,
@@ -471,7 +471,7 @@ export interface GitExtension {
   getAPI(version: 1): API;
 }
 
-export enum GitErrorCodes {
+export const enum GitErrorCodes {
   BadConfigFile = "BadConfigFile",
   BadRevision = "BadRevision",
   AuthenticationFailed = "AuthenticationFailed",

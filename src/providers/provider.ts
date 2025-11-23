@@ -32,7 +32,7 @@ export class Provider extends Base {
 
   public async resolveVariable(name: string): Promise<string | undefined> {
     return this.variables.has(name)
-      ? await this.variables.get(name)?.()
+      ? await this.variables.get(name)!()
       : undefined;
   }
 
