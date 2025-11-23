@@ -5,44 +5,36 @@ import { FileProvider } from "./providers/fileProvider";
 import { GitProvider } from "./providers/gitProvider";
 import { Provider } from "./providers/provider";
 import { Logger } from "./structures/logger";
+import { ProviderManager } from "./managers/providerManager";
 
 export class Extension extends Disposable {
+  providerManager = new ProviderManager(this);
   context: ExtensionContext | undefined;
-  providers: Provider[] = [];
   logger = new Logger(this);
+
+  activated = false;
 
   constructor() {
     super(() => {
       this.dispose();
     });
 
-    this.createProvider(LanguageProvider);
-    this.createProvider(FileProvider);
-    this.createProvider(JupyterProvider);
-    this.createProvider(GitProvider);
-  }
-
-  public createProvider(cl: typeof Provider) {
-    this.providers.push(new cl(this));
-    this.providers.sort((a, b) => a.priority - b.priority);
-  }
-
-  public addProvider(provider: Provider) {
-    this.providers.push(provider);
-    this.providers.sort((a, b) => a.priority - b.priority);
+    this.providerManager.createProvider(LanguageProvider);
+    this.providerManager.createProvider(FileProvider);
+    this.providerManager.createProvider(JupyterProvider);
+    this.providerManager.createProvider(GitProvider);
   }
 
   public activate(ctx: ExtensionContext) {
     this.context = ctx;
-    for (const provider of this.providers) {
-      provider.subscribe();
-    }
-
+    this.providerManager.subscribe();
     this.logger.info("VSCord is activated!");
+    this.activated = true;
   }
 
   public deactivate() {
     this.dispose();
+    this.activated = false;
   }
 
   public dispose() {

@@ -1,8 +1,12 @@
+import { TextEditorBasedProvider } from "./textEditorBasedProvider";
 import { Extension } from "../extension";
-import { Provider } from "./provider";
 
-export class LanguageProvider extends Provider {
+export class LanguageProvider extends TextEditorBasedProvider {
     constructor(extension: Extension) {
-        super(extension, 0)
+        super(extension, "language", 0, true);
+    }
+
+    public override getLanguage(): string | undefined {
+        return this.textEditor?.document.languageId
     }
 }

@@ -3,6 +3,6 @@ import { Provider } from "./provider";
 
 export class JupyterProvider extends Provider {
     constructor(extension: Extension) {
-        super(extension, 1)
+        super(extension, "jupyter", 1)
     }
 }

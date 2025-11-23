@@ -3,6 +3,6 @@ import { Provider } from "./provider";
 
 export class GitProvider extends Provider {
     constructor(extension: Extension) {
-        super(extension, 0)
+        super(extension, "git", 0)
     }
 }

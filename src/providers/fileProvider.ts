@@ -1,8 +1,8 @@
+import { TextEditorBasedProvider } from "./textEditorBasedProvider";
 import { Extension } from "../extension";
-import { Provider } from "./provider";
 
-export class FileProvider extends Provider {
+export class FileProvider extends TextEditorBasedProvider {
     constructor(extension: Extension) {
-        super(extension, 0)
+        super(extension, "file", 0, true)
     }
 }
