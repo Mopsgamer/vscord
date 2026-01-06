@@ -74,14 +74,14 @@ export class RPCController {
 
         const fileSwitch = window.onDidChangeActiveTextEditor((e) => {
             logInfo("onDidChangeActiveTextEditor()");
-            if (e) this.activityThrottle.reset();
-            if (!e) {
-                setTimeout(() => {
-                    this.checkIdle(window.state);
-                }, 500);
-            } else {
+            if (e) {
+                this.activityThrottle.reset();
                 void this.activityThrottle.callable();
+                return;
             }
+            setTimeout(() => {
+                this.checkIdle(window.state);
+            }, 500);
         });
         const fileEdit = workspace.onDidChangeTextDocument((e) => {
             if (e.document !== dataClass.editor?.document) return;
