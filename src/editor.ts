@@ -124,7 +124,8 @@ class EditorController implements Disposable {
         }
 
         const configKeyPairs = {
-            RPC_COULD_NOT_CONNECT: "vscord.behaviour.suppressRpcCouldNotConnect" satisfies keyof ExtensionConfigGenerated,
+            RPC_COULD_NOT_CONNECT:
+                "vscord.behaviour.suppressRpcCouldNotConnect" satisfies keyof ExtensionConfigGenerated
         } as const;
 
         const errorName = error.name;

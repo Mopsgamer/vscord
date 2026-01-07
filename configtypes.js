@@ -71,7 +71,7 @@ if (process.argv.includes("--check")) {
     const existing = fs.existsSync(OUT_FILE) ? fs.readFileSync(OUT_FILE, "utf8") : null;
     if (existing !== output) {
         console.log("configtypes.js: OUT OF DATE. Regenerate by running 'node configtypes.js'", OUT_FILE_REL);
-        process.exit(1)
+        process.exit(1);
     }
     console.log("checked", OUT_FILE_REL);
 } else {

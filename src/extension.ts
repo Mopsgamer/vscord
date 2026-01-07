@@ -6,10 +6,7 @@ import { getConfig } from "./config";
 import { logInfo } from "./logger";
 import { dataClass } from "./data";
 
-const controller = new RPCController(
-    getApplicationId(getConfig()).clientId,
-    getConfig().get("vscord.behaviour.debug")
-);
+const controller = new RPCController(getApplicationId(getConfig()).clientId, getConfig().get("vscord.behaviour.debug"));
 
 export const registerListeners = (ctx: ExtensionContext) => {
     const onConfigurationChanged = workspace.onDidChangeConfiguration(async () => {
