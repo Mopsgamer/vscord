@@ -4,6 +4,7 @@ const path = require("path");
 const ROOT = process.cwd();
 const PACKAGE_JSON = path.join(ROOT, "package.json");
 const OUT_FILE = path.join(ROOT, "src", "configtype.ts");
+const OUT_FILE_REL = path.relative(ROOT, OUT_FILE);
 
 const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, "utf8"));
 
@@ -68,13 +69,12 @@ ${entries.join("\n")}
 fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
 if (process.argv.includes("--check")) {
     const existing = fs.existsSync(OUT_FILE) ? fs.readFileSync(OUT_FILE, "utf8") : null;
-    if (existing === null) {
-        console.warn("missing", OUT_FILE);
-    } else if (existing !== output) {
-        console.log("up to date", OUT_FILE);
+    if (existing !== output) {
+        console.log("configtypes.js: OUT OF DATE. Regenerate by running 'node configtypes.js'", OUT_FILE_REL);
+        process.exit(1)
     }
-    console.log("checked", OUT_FILE);
+    console.log("checked", OUT_FILE_REL);
 } else {
     fs.writeFileSync(OUT_FILE, output, "utf8");
-    console.log("generated", OUT_FILE);
+    console.log("generated", OUT_FILE_REL);
 }

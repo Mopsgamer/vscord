@@ -21,6 +21,10 @@ jobs:
 
       - name: Check types
         run: |
+          node configtypes.js --check
+
+      - name: Check types
+        run: |
           npm run check-types
 
       - name: Lint
