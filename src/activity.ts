@@ -1,6 +1,7 @@
+import type { SetActivity } from "@xhayper/discord-rpc";
+import type { ExtensionConfigGenerated } from "./configtype";
+import type { GatewayActivityButton } from "discord-api-types/v10";
 import { resolveLangName, toLower, toTitle, toUpper, getArticle } from "./helpers/resolveLangName";
-import { type GatewayActivityButton } from "discord-api-types/v10";
-import { type SetActivity } from "@xhayper/discord-rpc";
 import { CONFIG_KEYS, FAKE_EMPTY } from "./constants";
 import { getFileSize } from "./helpers/getFileSize";
 import { isExcluded } from "./helpers/isExcluded";
@@ -28,15 +29,8 @@ export enum CURRENT_STATUS {
     VIEWING = "viewing"
 }
 
-export enum PROBLEM_LEVEL {
-    ERROR = "error",
-    WARNING = "warning",
-    INFO = "info",
-    HINT = "hint"
-}
-
 // TODO: move this to data class
-const COUNTED_SEVERITIES: { [key in PROBLEM_LEVEL]: number } = {
+const COUNTED_SEVERITIES = {
     error: 0,
     warning: 0,
     info: 0,
@@ -187,7 +181,7 @@ export const activity = async (
     if (isObject(ignoreWorkspacesText)) {
         workspaceExcludedText =
             (dataClass.workspaceFolder
-                ? await replaceAllText(ignoreWorkspacesText[dataClass.workspaceFolder.name])
+                ? await replaceAllText(String(ignoreWorkspacesText[dataClass.workspaceFolder.name]))
                 : undefined) ?? workspaceExcludedText;
     } else {
         const text = await replaceAllText(ignoreWorkspacesText);
@@ -409,24 +403,26 @@ export const replaceAppInfo = (text: string): string => {
     return text;
 };
 
-export const getTotalProblems = (countedSeverities: PROBLEM_LEVEL[]): number => {
+export const getTotalProblems = (
+    countedSeverities: ExtensionConfigGenerated["vscord.status.problems.countedSeverities"]
+): number => {
     let totalProblems = 0;
 
     for (const severity of countedSeverities) {
         switch (severity) {
-            case PROBLEM_LEVEL.ERROR: {
+            case "error": {
                 totalProblems += COUNTED_SEVERITIES.error;
                 break;
             }
-            case PROBLEM_LEVEL.WARNING: {
+            case "warning": {
                 totalProblems += COUNTED_SEVERITIES.warning;
                 break;
             }
-            case PROBLEM_LEVEL.INFO: {
+            case "info": {
                 totalProblems += COUNTED_SEVERITIES.info;
                 break;
             }
-            case PROBLEM_LEVEL.HINT: {
+            case "hint": {
                 totalProblems += COUNTED_SEVERITIES.hint;
                 break;
             }

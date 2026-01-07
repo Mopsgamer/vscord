@@ -1,5 +1,6 @@
+import type { ExtensionConfigGenerated } from "./configtype";
 import { Disposable, ConfigurationTarget, StatusBarAlignment, StatusBarItem, window, commands } from "vscode";
-import { type ExtensionConfiguration, type ExtensionConfigurationType, getConfig } from "./config";
+import { type ExtensionConfiguration, getConfig } from "./config";
 import { CONFIG_KEYS } from "./constants";
 import { logInfo, outputChannel } from "./logger";
 
@@ -63,7 +64,7 @@ class EditorController implements Disposable {
         const cfgKey = CONFIG_KEYS.Behaviour.StatusBarAlignment;
         const literalAlign = (
             align === StatusBarAlignment.Right ? "Right" : "Left"
-        ) satisfies ExtensionConfigurationType[typeof cfgKey];
+        ) satisfies ExtensionConfigGenerated[typeof cfgKey];
 
         config.update(cfgKey, literalAlign);
         // updateStatusBarFromConfig() // called from config listener
