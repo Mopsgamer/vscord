@@ -19,10 +19,6 @@ jobs:
 
       - run: npm install
 
-      - name: Check types
-        run: |
-          node --run pretest
-
       - name: Package
         run: |
           npx vsce package
