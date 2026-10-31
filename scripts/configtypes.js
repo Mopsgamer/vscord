@@ -1,7 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { styleText as c } from "node:util"
 
-const ROOT = import.meta.dirname;
+const ROOT = path.dirname(import.meta.dirname);
 const PACKAGE_JSON = path.join(ROOT, "package.json");
 const OUT_FILE = path.join(ROOT, "src", "@types", "configtypes.d.ts");
 const OUT_FILE_REL = path.relative(ROOT, OUT_FILE);
@@ -87,7 +88,7 @@ for (const block of configurations) {
 
 const output = `// AUTO-GENERATED FILE
 // DO NOT EDIT MANUALLY
-// Edit package.json instead and re-run/edit configtypes.js to update
+// Edit package.json instead and re-run/edit scripts/configtypes.js to update
 // Generated from package.json contributes.configuration
 
 export type ExtensionConfigGenerated = {
@@ -104,12 +105,12 @@ fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
 if (process.argv.includes("--check")) {
     const existing = fs.existsSync(OUT_FILE) ? fs.readFileSync(OUT_FILE, "utf8") : null;
     if (existing !== output) {
-        console.log("%s: OUT OF DATE.", OUT_FILE_REL);
-        console.log("Regenerate by running 'node configtypes.js' or edit the generator script.");
+        console.log("Checked", OUT_FILE_REL, "and it is", c(["red", "bold"], "out of date."));
+        console.log("Regenerate by running 'node --run typegen' or edit the generator script.");
         process.exit(1);
     }
-    console.log("checked", OUT_FILE_REL);
+    console.log("Checked", OUT_FILE_REL, c(["green", "bold"], "successfully"));
 } else {
     fs.writeFileSync(OUT_FILE, output, "utf8");
-    console.log("generated", OUT_FILE_REL);
+    console.log("Generated", OUT_FILE_REL, c(["green", "bold"], "successfully"));
 }

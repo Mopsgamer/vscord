@@ -39,11 +39,12 @@
     "private": true,
     "icon": "assets/icon.png",
     "scripts": {
-        "vscode:prepublish": "npm run package",
-        "compile": "node configtypes.js && rspack",
+        "vscode:prepublish": "node --run package",
+        "compile": "node --run typegen -- --check && rspack",
+        "typegen": "node scripts/configtypes.js",
         "watch": "rspack --watch",
         "package": "rspack --mode production --devtool hidden-source-map",
-        "pretest": "npm run compile"
+        "pretest": "node --run compile"
     },
     "dependencies": {
         "@xhayper/discord-rpc": "^1.5.1",

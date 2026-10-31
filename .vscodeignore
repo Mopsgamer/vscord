@@ -4,6 +4,7 @@ node_modules/
 .vscode/
 out/
 src/
+scripts/
 
 ADDING_LANGUAGE.md
 package-lock.json
@@ -14,5 +15,4 @@ tsconfig.json
 .vscodeignore
 .prettierrc
 .gitignore
-configtypes.js
 suckmyass
