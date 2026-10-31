@@ -1,6 +1,6 @@
 // AUTO-GENERATED FILE
 // DO NOT EDIT MANUALLY
-// Edit package.json instead and re-run the build to update
+// Edit package.json instead and re-run/edit scripts/configtypes.js to update
 // Generated from package.json contributes.configuration
 
 export type ExtensionConfigGenerated = {
