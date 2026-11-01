@@ -40,6 +40,7 @@
 	"icon": "assets/icon.png",
 	"scripts": {
 		"vscode:prepublish": "node --run package",
+		"gen:cfg": "node generators/configTypes.js",
 		"compile": "rspack",
 		"watch": "rspack --watch",
 		"package": "rspack --mode production --devtool hidden-source-map --env configtypes=check",
